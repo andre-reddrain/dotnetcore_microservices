@@ -37,7 +37,10 @@ namespace Mango.Web.Service
 
                 if (requestDto.Data != null)
                 {
-                    message.Content = new StringContent(JsonConvert.SerializeObject(requestDto.Data), Encoding.UTF8, "application/json");
+                    string jsonPayload = JsonConvert.SerializeObject(requestDto.Data);
+                    message.Content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
+
+                    message.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
                 }
 
                 HttpResponseMessage? apiResponse = null;
@@ -70,6 +73,8 @@ namespace Mango.Web.Service
                         return new() { IsSuccess = false, Message = "Unauthorized" };
                     case HttpStatusCode.InternalServerError:
                         return new() { IsSuccess = false, Message = "Internal Server Error" };
+                    case HttpStatusCode.BadRequest:
+                        return new() { IsSuccess = false, Message = "Bad Request Error" };
                     default:
                         var apiContent = await apiResponse.Content.ReadAsStringAsync();
                         var apiResponseDto = JsonConvert.DeserializeObject<ResponseDto>(apiContent);

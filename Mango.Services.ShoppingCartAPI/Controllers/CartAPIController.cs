@@ -80,7 +80,7 @@ namespace Mango.Services.ShoppingCartAPI.Controllers
         {
             try
             {
-                var cartFromDb = _db.CartHeaders.First(u => u.UserId == cartDto.CartHeader.UserId);
+                var cartFromDb = await _db.CartHeaders.FirstAsync(u => u.UserId == cartDto.CartHeader.UserId);
                 cartFromDb.CouponCode = cartDto.CartHeader.CouponCode;
                 _db.CartHeaders.Update(cartFromDb);
                 await _db.SaveChangesAsync();
@@ -156,6 +156,7 @@ namespace Mango.Services.ShoppingCartAPI.Controllers
                 CartDetails cartDetails = _db.CartDetails.First(u => u.CartDetailsId == cartDetailsId);
 
                 int totalCountOfCartItem = _db.CartDetails.Where(u => u.CartHeaderId == cartDetails.CartHeaderId).Count();
+                _db.CartDetails.Remove(cartDetails);
 
                 if (totalCountOfCartItem == 1)
                 {
