@@ -80,7 +80,7 @@ namespace Mango.Web.Controllers
             cart.CartHeader.Email = User.Claims.Where(u => u.Type == JwtRegisteredClaimNames.Email)?.FirstOrDefault()?.Value;
 
 
-            ResponseDto? response = await _cartService.EmailCart(cartDto);
+            ResponseDto? response = await _cartService.EmailCart(cart);
 
             if (response != null && response.IsSuccess)
             {
