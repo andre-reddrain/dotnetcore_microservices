@@ -12,6 +12,7 @@
     <Project Path="Mango.Services.EmailAPI/Mango.Services.EmailAPI.csproj" Id="2b94c965-f0a6-4161-b5e0-c44fcd67373a" />
     <Project Path="Mango.Services.OrderAPI/Mango.Services.OrderAPI.csproj" Id="aa135d78-4650-453e-a986-7740dccc225c" />
     <Project Path="Mango.Services.ProductAPI/Mango.Services.ProductAPI.csproj" Id="09195a1a-fd9e-42d8-85bd-e86d3f8541be" />
+    <Project Path="Mango.Services.RewardAPI/Mango.Services.RewardAPI.csproj" Id="52200ce4-1014-482f-a180-ce4db7387993" />
     <Project Path="Mango.Services.ShoppingCartAPI/Mango.Services.ShoppingCartAPI.csproj" Id="228c4461-dfe2-403d-8402-152591675982" />
   </Folder>
 </Solution>

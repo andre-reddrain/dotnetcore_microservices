@@ -1,4 +1,5 @@
 ﻿using Azure.Messaging.ServiceBus;
+using Mango.Services.EmailAPI.Message;
 using Mango.Services.EmailAPI.Models.Dto;
 using Mango.Services.EmailAPI.Services;
 using Newtonsoft.Json;
@@ -12,11 +13,14 @@ namespace Mango.Services.EmailAPI.Messaging
         private readonly string serviceBusConnectionString;
         private readonly string emailCartQueue;
         private readonly string userRegistrationQueue;
+        private readonly string orderCreated_Topic;
+        private readonly string orderCreated_Email_Subscription;
         private readonly IConfiguration _configuration;
         private readonly EmailService _emailService;
 
         private ServiceBusProcessor _emailCartProcessor;
         private ServiceBusProcessor _userRegistrationProcessor;
+        private ServiceBusProcessor _emailOrderPlacedProcessor;
 
         public AzureServiceBusConsumer(IConfiguration configuration, EmailService emailService)
         {
@@ -26,12 +30,14 @@ namespace Mango.Services.EmailAPI.Messaging
             serviceBusConnectionString = _configuration.GetValue<string>("ServiceBusConnectionString");
 
             emailCartQueue = _configuration.GetValue<string>("TopicAndQueueNames:EmailShoppingCartQueue");
-
             userRegistrationQueue = _configuration.GetValue<string>("TopicAndQueueNames:UserRegistrationQueue");
+            orderCreated_Topic = _configuration.GetValue<string>("TopicAndQueueNames:OrderCreatedTopic");
+            orderCreated_Email_Subscription = _configuration.GetValue<string>("TopicAndQueueNames:OrderCreated_Email_Subscription");
 
             var client = new ServiceBusClient(serviceBusConnectionString);
             _emailCartProcessor = client.CreateProcessor(emailCartQueue);
             _userRegistrationProcessor = client.CreateProcessor(userRegistrationQueue);
+            _emailOrderPlacedProcessor = client.CreateProcessor(orderCreated_Topic, orderCreated_Email_Subscription);
         }
 
         public async Task Start()
@@ -43,6 +49,10 @@ namespace Mango.Services.EmailAPI.Messaging
             _userRegistrationProcessor.ProcessMessageAsync += OnUserRegisterRequestReceived;
             _userRegistrationProcessor.ProcessErrorAsync += ErrorHandler;
             await _userRegistrationProcessor.StartProcessingAsync();
+
+            _emailOrderPlacedProcessor.ProcessMessageAsync += OnOrderPlacedRequestReceived;
+            _emailOrderPlacedProcessor.ProcessErrorAsync += ErrorHandler;
+            await _emailOrderPlacedProcessor.StartProcessingAsync();
         }
 
         public async Task Stop()
@@ -52,6 +62,9 @@ namespace Mango.Services.EmailAPI.Messaging
 
             await _userRegistrationProcessor.StopProcessingAsync();
             await _userRegistrationProcessor.DisposeAsync();
+
+            await _emailOrderPlacedProcessor.StopProcessingAsync();
+            await _emailOrderPlacedProcessor.DisposeAsync();
         }
 
         private async Task OnEmailCartRequestReceived(ProcessMessageEventArgs args)
@@ -81,6 +94,24 @@ namespace Mango.Services.EmailAPI.Messaging
             try
             {
                 await _emailService.RegisterUserEmailAndLog(email);
+                await args.CompleteMessageAsync(args.Message);
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        private async Task OnOrderPlacedRequestReceived(ProcessMessageEventArgs args)
+        {
+            // This is where you will receive the message
+            var message = args.Message;
+            var body = Encoding.UTF8.GetString(message.Body);
+
+            RewardsMessage objMessage = JsonConvert.DeserializeObject<RewardsMessage>(body);
+            try
+            {
+                await _emailService.LogOrderPlaced(objMessage);
                 await args.CompleteMessageAsync(args.Message);
             }
             catch (Exception ex)
