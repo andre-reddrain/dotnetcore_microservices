@@ -20,4 +20,8 @@
 	  <PackageReference Include="Newtonsoft.Json.Bson" Version="1.0.3" />
 	  <PackageReference Include="Swashbuckle.AspNetCore" Version="10.1.7" />
   </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Mango.MessageBus\Mango.MessageBus.csproj" />
+  </ItemGroup>
 </Project>
